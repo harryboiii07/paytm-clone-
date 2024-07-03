@@ -3,6 +3,7 @@ import  zod  from "zod";
 import User from "../db";
 import jwt from "jsonwebtoken";
 import JWT_SECRET from "../config"
+import { authmiddleware } from "../middleware"
 
 const userrouter = express.Router();
 const signupschema = zod.object({
@@ -15,6 +16,12 @@ const signupschema = zod.object({
 const signinschema = zod.object({
   username : zod.string().email(),
   password : zod.string(),
+})
+
+const updateschema = zod.object({
+  password : zod.string().optional(),
+  firstname : zod.string().optional(),
+  lastname : zod.string().optional(),
 })
 
 userrouter.post("/signup",async (req,res) => {
@@ -66,6 +73,24 @@ userrouter.post("/signin",async (req,res){
     res.status(200).json({
       token : token
     })
+})
+
+userrouter.put("/",authmiddleware,async (req,res)=>{
+  const body = req.body;
+  const result = updateschema.safeParse(body);
+  if(!result.success){
+    return res.status(411).json({
+      msg : "bad inputs"
+    })
+  }
+  await User.update({
+    _id : req.userid 
+  },body);
+  
+  res.status(200).json({
+    msg : "details updated successfully!"
+  })
+
 })
 
 module.exports({
