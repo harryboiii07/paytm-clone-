@@ -86,11 +86,39 @@ userrouter.put("/",authmiddleware,async (req,res)=>{
   await User.update({
     _id : req.userid 
   },body);
-  
+
   res.status(200).json({
     msg : "details updated successfully!"
   })
 
+})
+
+userrouter.get("/bulk",authmiddleware,async (req,res)=>{
+  const filter = req.query.filter;
+  const users = await User.find({
+    "$or" : [{
+      firstname : {
+        "$regex" : filter
+      }
+    },{
+      lastname : {
+        "$regex" : filter
+      }
+    }]
+  })
+
+  if(!users){
+    res.status(411).json({
+      msg : "user not found"
+    })
+  }
+  res.status(200).json({
+    users : users.map((user)=>({
+      firstname : user.firstname,
+      lastname : user.lastname,
+      userid : user._id,
+    }))
+  })
 })
 
 module.exports({
