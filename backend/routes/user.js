@@ -1,6 +1,6 @@
 import express from "express";
 import  zod  from "zod";
-import User from "../db";
+import {User,Account } from "../db";
 import jwt from "jsonwebtoken";
 import JWT_SECRET from "../config"
 import { authmiddleware } from "../middleware"
@@ -40,7 +40,13 @@ userrouter.post("/signup",async (req,res) => {
       msg : "incorrect inputs/email already taken"
     })
   }
+  
   const dbuser = await User.create(body);
+  await Account.create({
+    userid : dbuser._id,
+    balance : (Math.random()*10000)+1,
+  })
+
   const token = jwt.sign({
     userid : dbuser._id
   },JWT_SECRET)
@@ -94,7 +100,7 @@ userrouter.put("/",authmiddleware,async (req,res)=>{
 })
 
 userrouter.get("/bulk",authmiddleware,async (req,res)=>{
-  const filter = req.query.filter;
+  const filter = req.query.filter || "";
   const users = await User.find({
     "$or" : [{
       firstname : {
