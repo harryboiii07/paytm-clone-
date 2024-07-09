@@ -1,9 +1,10 @@
-import express from "express";
-import  zod  from "zod";
-import {User,Account } from "../db";
-import jwt from "jsonwebtoken";
-import JWT_SECRET from "../config"
-import { authmiddleware } from "../middleware"
+const express = require("express");
+const zod = require("zod");
+const jwt = require("jsonwebtoken");
+
+const { JWT_SECRET } = require("../config.js");
+const { authmiddleware } = require("../middleware.js");
+const { User, Account } = require("../db.js");
 
 const userrouter = express.Router();
 const signupschema = zod.object({
@@ -25,26 +26,26 @@ const updateschema = zod.object({
 })
 
 userrouter.post("/signup",async (req,res) => {
-  const body = req.body;
-  const result = signupschema.safeParse(body);
+  const result = signupschema.safeParse(req.body);
   if(!result.success){
     return res.status(411).json({
-      msg : "incorrect inputs/email already taken"
+      msg : "incorrect inputs"
     })
   }
-  const existinguser = User.findOne({
-    username : body.username
+  const existinguser = await User.findOne({
+    username : req.body.username
   })
+
   if(existinguser){
     return res.status(411).json({
-      msg : "incorrect inputs/email already taken"
+      msg : "email already taken"
     })
   }
-  
-  const dbuser = await User.create(body);
+  const dbuser = await User.create(req.body); //error
+
   await Account.create({
     userid : dbuser._id,
-    balance : (Math.random()*10000)+1,
+    balance : parseFloat((Math.random()*10000)+1).toFixed(2),
   })
 
   const token = jwt.sign({
@@ -52,21 +53,20 @@ userrouter.post("/signup",async (req,res) => {
   },JWT_SECRET)
 
   res.status(200).json({
-    msg : "user created successfully"
+    msg : "user created successfully",
     token : token
   })
 })
 
-userrouter.post("/signin",async (req,res){
-    const body = req.body;
-    const result = signinschema.safeParse(body);
+userrouter.post("/signin",async (req,res)=>{
+    const result = signinschema.safeParse(req.body);
     if(!result.success){
       return res.status(411).json({
         msg : "invalid inputs"
       });
     }
     const user = await User.findOne({
-    username : body.username
+    username : req.body.username
     })
     if (!user){
       return res.status(411).json({
@@ -74,24 +74,24 @@ userrouter.post("/signin",async (req,res){
       })
     }
     const token = jwt.sign({
-      userid : body._id
-    },JWT_SECRET)
+      userid : user._id
+    },JWT_SECRET);
+
     res.status(200).json({
       token : token
     })
 })
 
 userrouter.put("/",authmiddleware,async (req,res)=>{
-  const body = req.body;
-  const result = updateschema.safeParse(body);
+  const result = updateschema.safeParse(req.body);
   if(!result.success){
     return res.status(411).json({
       msg : "bad inputs"
     })
   }
-  await User.update({
+  await User.updateOne({
     _id : req.userid 
-  },body);
+  },req.body);
 
   res.status(200).json({
     msg : "details updated successfully!"
@@ -127,6 +127,5 @@ userrouter.get("/bulk",authmiddleware,async (req,res)=>{
   })
 })
 
-module.exports({
-  userrouter
-})
+module.exports = userrouter;
+

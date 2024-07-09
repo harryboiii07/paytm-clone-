@@ -1,8 +1,18 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 mongoose.connect("mongodb+srv://admin:KGTM5SImpmIqenme@cluster0.matwpjf.mongodb.net/paytm_project");
 
 const userSchema = new mongoose.Schema({
+  firstname: {
+    type: String,
+    // required: true,
+    trim: true,
+  },
+  lastname: {
+    type: String,
+    // required: true,
+    trim: true,
+  },
   username: {
       type: String,
       required: true,
@@ -15,17 +25,7 @@ const userSchema = new mongoose.Schema({
       type: String,
       required: true,
       minLength: 6
-  },
-  firstName: {
-      type: String,
-      required: true,
-      trim: true,
-  },
-  lastName: {
-      type: String,
-      required: true,
-      trim: true,
-  }
+  },  
 });
 
 const accountschema = mongoose.Schema({
@@ -40,10 +40,10 @@ const accountschema = mongoose.Schema({
   }
 })
 
-const User = mongoose.model("Users",Userschema);
+const User = mongoose.model("Users",userSchema);
 const Account = mongoose.model("accounts",accountschema);
 
-module.exports({
+module.exports = {
   User,
-  Account
-})
+  Account,
+}

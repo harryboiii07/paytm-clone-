@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken"
-import { JWT_SECRET } from "./config";
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("./config");
 
 function authmiddleware(req,res,next){
   const header = req.headers.authorization;
@@ -11,8 +11,15 @@ function authmiddleware(req,res,next){
   const token = header.split(" ")[1];
   try{  
     const decoded = jwt.verify(token,JWT_SECRET);
-    req.userid = decoded.userid;
-    next();
+    if(decoded.userid){
+      req.userid = decoded.userid;
+      next();
+    }
+    else{
+      return res.status(403).json({
+        msg : "authorization failed"
+      })
+    }
   }
   catch(err){
     return res.status(403).json({
@@ -21,6 +28,6 @@ function authmiddleware(req,res,next){
   }
 }
 
-module.exports({
+module.exports = {
   authmiddleware
-})
+}

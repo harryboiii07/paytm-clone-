@@ -1,5 +1,3 @@
-export const JWT_SECRET = "harshitsecret";
+const JWT_SECRET = "harshitsecret";
 
-module.exports({
-  JWT_SECRET
-})
+module.exports = { JWT_SECRET };

@@ -1,13 +1,14 @@
-import express from "express";
-import {authmiddleware} from "../middleware"
-import { User,Account } from "../db"
-import mongoose from "mongoose";
+const express = require("express");
+const mongoose = require("mongoose");
+
+const {authmiddleware} = require ("../middleware");
+const { User,Account } = require ("../db");
+
 
 const accountrouter = express.Router();
 
 accountrouter.get("/balance",authmiddleware,async (req,res)=>{
   
-  const {amount,to} = req.body;
   const account = await Account.findOne({
     userid : req.userid
   })
@@ -68,6 +69,4 @@ accountrouter.post("/transfer",authmiddleware,async (req,res)=>{
 
 })
 
-module.exports({
-  accountrouter
-})
+module.exports = accountrouter
